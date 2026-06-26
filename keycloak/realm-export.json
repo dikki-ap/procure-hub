@@ -1,0 +1,150 @@
+{
+  "id": "procurehub",
+  "realm": "procurehub",
+  "displayName": "ProcureHub",
+  "displayNameHtml": "<strong>ProcureHub</strong>",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "sslRequired": "external",
+  "accessTokenLifespan": 300,
+  "refreshTokenMaxReuse": 0,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      { "name": "super_admin",   "description": "Full system access — master data, users, configuration" },
+      { "name": "requester",     "description": "Create and manage Purchase Requisitions" },
+      { "name": "purchasing",    "description": "RFQ, bidding, evaluation, PO management" },
+      { "name": "approver",      "description": "Approve, revise, or reject procurement documents" },
+      { "name": "finance",       "description": "Invoice verification and payment confirmation" },
+      { "name": "management",    "description": "Read-only analytics and reports" },
+      { "name": "vendor_admin",  "description": "Manage company profile, documents, vendor users" },
+      { "name": "vendor_staff",  "description": "Submit quotations and bids" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "procurehub-api",
+      "name": "ProcureHub Backend API",
+      "description": "Confidential client for backend API token validation",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "clientId": "procurehub-web",
+      "name": "ProcureHub Web Frontend",
+      "description": "Public client for the React SPA",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5173/*",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "super_admin",
+      "email": "super_admin@procurehub.local",
+      "firstName": "Super",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Admin@1234", "temporary": false }],
+      "realmRoles": ["super_admin"]
+    },
+    {
+      "username": "requester",
+      "email": "requester@procurehub.local",
+      "firstName": "John",
+      "lastName": "Requester",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Test@1234", "temporary": false }],
+      "realmRoles": ["requester"]
+    },
+    {
+      "username": "purchasing",
+      "email": "purchasing@procurehub.local",
+      "firstName": "Jane",
+      "lastName": "Purchasing",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Test@1234", "temporary": false }],
+      "realmRoles": ["purchasing"]
+    },
+    {
+      "username": "approver",
+      "email": "approver@procurehub.local",
+      "firstName": "Bob",
+      "lastName": "Approver",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Test@1234", "temporary": false }],
+      "realmRoles": ["approver"]
+    },
+    {
+      "username": "finance",
+      "email": "finance@procurehub.local",
+      "firstName": "Alice",
+      "lastName": "Finance",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Test@1234", "temporary": false }],
+      "realmRoles": ["finance"]
+    },
+    {
+      "username": "management",
+      "email": "management@procurehub.local",
+      "firstName": "Carol",
+      "lastName": "Management",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Test@1234", "temporary": false }],
+      "realmRoles": ["management"]
+    },
+    {
+      "username": "vendor_admin",
+      "email": "vendor_admin@procurehub.local",
+      "firstName": "Vendor",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Test@1234", "temporary": false }],
+      "realmRoles": ["vendor_admin"]
+    },
+    {
+      "username": "vendor_staff",
+      "email": "vendor_staff@procurehub.local",
+      "firstName": "Vendor",
+      "lastName": "Staff",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Test@1234", "temporary": false }],
+      "realmRoles": ["vendor_staff"]
+    }
+  ]
+}
