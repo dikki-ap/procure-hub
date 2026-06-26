@@ -1,0 +1,155 @@
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: procurehub-app
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      Database__Provider: MariaDb
+      Database__ConnectionStrings__MariaDb: "Server=mariadb;Port=3306;Database=${DB_NAME:-procurehub};User=${DB_USER:-app};Password=${DB_PASSWORD:-secret};Allow User Variables=True;"
+      Keycloak__Authority: "http://keycloak:8080/realms/procurehub"
+      Keycloak__ClientId: "${KC_CLIENT_ID:-procurehub-api}"
+      Keycloak__ClientSecret: "${KC_CLIENT_SECRET:-changeme_client_secret}"
+      Keycloak__RequireHttpsMetadata: "false"
+      SeaweedFS__S3Endpoint: "http://seaweedfs-s3:8333"
+      SeaweedFS__AccessKey: "${SEAWEEDFS_ACCESS_KEY:-devaccess}"
+      SeaweedFS__SecretKey: "${SEAWEEDFS_SECRET_KEY:-devsecret}"
+      Email__Host: "${SMTP_HOST:-mailpit}"
+      Email__Port: "${SMTP_PORT:-1025}"
+      Email__Username: "${SMTP_USERNAME:-}"
+      Email__Password: "${SMTP_PASSWORD:-}"
+      Email__FromAddress: "${SMTP_FROM:-noreply@procurehub.local}"
+      Email__FromName: "ProcureHub Dev"
+      Email__UseSsl: "${SMTP_USE_SSL:-false}"
+      Swagger__Enabled: "true"
+      Cors__AllowedOrigins__0: "${APP_FRONTEND_URL:-http://localhost:5173}"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      seaweedfs-s3:
+        condition: service_started
+      mailpit:
+        condition: service_started
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:11.4
+    container_name: procurehub-mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+      MARIADB_DATABASE: ${DB_NAME:-procurehub}
+      MARIADB_USER: ${DB_USER:-app}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  postgres-keycloak:
+    image: postgres:15-alpine
+    container_name: procurehub-postgres
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KC_DB_USER:-keycloak}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:-keycloak}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${KC_DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KC_DB_USER:-keycloak} -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.7
+    container_name: procurehub-keycloak
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: ${KC_DB_USER:-keycloak}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:-keycloak}
+      KEYCLOAK_ADMIN: ${KC_ADMIN_USER:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
+    ports:
+      - "${KC_PORT:-9090}:8080"
+    depends_on:
+      postgres-keycloak:
+        condition: service_healthy
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: procurehub-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - mailpit-data:/data
+    restart: unless-stopped
+
+  seaweedfs-master:
+    image: chrislusf/seaweedfs:3.93
+    container_name: procurehub-seaweedfs-master
+    command: master -ip=seaweedfs-master
+    ports:
+      - "9333:9333"
+    restart: unless-stopped
+
+  seaweedfs-volume:
+    image: chrislusf/seaweedfs:3.93
+    container_name: procurehub-seaweedfs-volume
+    command: volume -mserver="seaweedfs-master:9333" -port=8080
+    volumes:
+      - seaweedfs-data:/data
+    depends_on:
+      - seaweedfs-master
+    restart: unless-stopped
+
+  seaweedfs-filer:
+    image: chrislusf/seaweedfs:3.93
+    container_name: procurehub-seaweedfs-filer
+    command: filer -master="seaweedfs-master:9333"
+    depends_on:
+      - seaweedfs-master
+      - seaweedfs-volume
+    restart: unless-stopped
+
+  seaweedfs-s3:
+    image: chrislusf/seaweedfs:3.93
+    container_name: procurehub-seaweedfs-s3
+    command: s3 -filer="seaweedfs-filer:8888" -ip.bind=0.0.0.0
+    ports:
+      - "${S3_PORT:-8333}:8333"
+    depends_on:
+      - seaweedfs-filer
+    restart: unless-stopped
+
+volumes:
+  mariadb-data:
+  postgres-data:
+  keycloak-data:
+  mailpit-data:
+  seaweedfs-data:

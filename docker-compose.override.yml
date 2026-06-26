@@ -1,0 +1,7 @@
+services:
+  app:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Swagger__Enabled: "true"
+    volumes:
+      - ./src/ProcureHub.API/appsettings.Development.json:/app/appsettings.Development.json:ro
