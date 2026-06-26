@@ -61,6 +61,7 @@ try
     builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
 
     builder.Services.AddMasterDataServices();
+    builder.Services.AddVendorManagementServices();
 
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 

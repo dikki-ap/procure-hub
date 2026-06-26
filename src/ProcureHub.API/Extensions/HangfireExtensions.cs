@@ -2,6 +2,7 @@ using System.Transactions;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.MySql;
+using ProcureHub.Modules.VendorManagement.Infrastructure.Jobs;
 
 namespace ProcureHub.API.Extensions;
 
@@ -38,13 +39,11 @@ public static class HangfireExtensions
 
     public static void RegisterHangfireJobs(this WebApplication app)
     {
-        // Uncomment each job as the corresponding module is built:
-
-        // RecurringJob.AddOrUpdate<DocumentExpiryCheckJob>(
-        //     "document-expiry-check",
-        //     job => job.ExecuteAsync(CancellationToken.None),
-        //     "0 0 * * *",
-        //     new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+        RecurringJob.AddOrUpdate<DocumentExpiryCheckJob>(
+            "document-expiry-check",
+            job => job.ExecuteAsync(CancellationToken.None),
+            "0 0 * * *",
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
         // RecurringJob.AddOrUpdate<BidDeadlineReminderJob>(
         //     "bid-deadline-reminder",
