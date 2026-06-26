@@ -121,7 +121,7 @@ try
     app.MapFallbackToFile("index.html");
 
     await app.ApplyMigrationsAsync();
-    await app.SeedDataAsync();
+    await app.SeedMasterDataAsync();
     app.RegisterHangfireJobs();
 
     await app.RunAsync();
